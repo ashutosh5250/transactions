@@ -230,15 +230,13 @@ const combinedData = async (req, res) => {
   try {
     const { month } = req.query;
 
-    const [transactions,statistics, barChart, pieChart] = await Promise.all([
-      axios.get(`http://localhost:${PORT}/product/transactions?month=${month}`),
+    const [statistics, barChart, pieChart] = await Promise.all([
       axios.get(`http://localhost:${PORT}/product/statistics?month=${month}`),
       axios.get(`http://localhost:${PORT}/product/barchart?month=${month}`),
       axios.get(`http://localhost:${PORT}/product/piechart?month=${month}`),
     ]);
 
     const combinedResponse = {
-      transactions:transactions.data,
       statistics: statistics.data,
       barChart: barChart.data,
       pieChart: pieChart.data,
