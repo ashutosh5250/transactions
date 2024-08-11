@@ -3,6 +3,7 @@ const httpStatus = require("http-status");
 const axios = require("axios");
 require("dotenv").config();
 const PORT = process.env.PORT;
+
 const initialize = async (req, res) => {
   try {
     const response = await axios.get(
@@ -17,9 +18,10 @@ const initialize = async (req, res) => {
       .send("Error initializing database.");
   }
 };
+
 const getTransactions = async (req, res) => {
   try {
-    const { search = "", page = 1, perPage = 10 } = req.query;
+    const { search = "", page = 1, perPage = 10, month } = req.query;
     const skip = (page - 1) * parseInt(perPage);
     const limit = parseInt(perPage);
 
@@ -35,9 +37,29 @@ const getTransactions = async (req, res) => {
         query.$or.push({ price: price });
       }
     }
-
     const transactions = await Product.find(query).skip(skip).limit(limit);
-
+    if (month) {
+      let months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      const monthNum = months.findIndex((item) => item === month);
+      const filteredTransactions = transactions.filter(({ dateOfSale }) => {
+        const date = new Date(dateOfSale);
+        return date.getMonth() === monthNum;
+      });
+      return res.status(httpStatus.OK).json(filteredTransactions);
+    }
     res.status(httpStatus.OK).json(transactions);
   } catch (error) {
     console.error(error);
@@ -51,24 +73,20 @@ const statistics = async (req, res) => {
   try {
     const { month } = req.query;
     let months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
+      "January",
+      "February",
+      "March",
+      "April",
       "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     const monthNum = months.findIndex((item) => item === month);
-
-    if (monthNum === -1) {
-      return res.status(400).json({ message: "Invalid month" });
-    }
 
     const transactions = await Product.find({});
 
@@ -86,7 +104,7 @@ const statistics = async (req, res) => {
     ).length;
     const totalNotSoldItems = filteredTransactions.length - totalSoldItems;
 
-    res.status(200).send({
+    res.status(200).json({
       totalSaleAmount,
       totalSoldItems,
       totalNotSoldItems,
@@ -100,24 +118,20 @@ const barchart = async (req, res) => {
   try {
     const { month } = req.query;
     const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
+      "January",
+      "February",
+      "March",
+      "April",
       "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     const monthNum = months.findIndex((item) => item === month);
-
-    if (monthNum === -1) {
-      return res.status(400).json({ message: "Invalid month" });
-    }
 
     const transactions = await Product.find({});
 
@@ -166,24 +180,20 @@ const piechart = async (req, res) => {
   try {
     const { month } = req.query;
     const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
+      "January",
+      "February",
+      "March",
+      "April",
       "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     const monthNum = months.findIndex((item) => item === month);
-
-    if (monthNum === -1) {
-      return res.status(400).json({ message: "Invalid month" });
-    }
 
     const transactions = await Product.find({});
 
@@ -219,11 +229,11 @@ const piechart = async (req, res) => {
 const combinedData = async (req, res) => {
   try {
     const { month } = req.query;
-  
+
     const [statistics, barChart, pieChart] = await Promise.all([
       axios.get(`http://localhost:${PORT}/product/statistics?month=${month}`),
       axios.get(`http://localhost:${PORT}/product/barchart?month=${month}`),
-      axios.get(`http://localhost:${PORT}/product/piechart?month=${month}`)
+      axios.get(`http://localhost:${PORT}/product/piechart?month=${month}`),
     ]);
 
     const combinedResponse = {
