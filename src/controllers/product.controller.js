@@ -166,7 +166,7 @@ const barchart = async (req, res) => {
       return { range: range.range, count };
     });
 
-    res.status(200).json({ barChartData });
+    res.status(200).json(barChartData);
   } catch (error) {
     console.error("Error fetching bar chart data:", error);
     res.status(500).json({
