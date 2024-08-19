@@ -26,16 +26,12 @@ const getTransactions = async (req, res) => {
     const limit = parseInt(perPage);
 
     const query = {};
-
-    if (search) {
-      const searchRegex = { $regex: search, $options: "i" };
-
+    if (!isNaN(search)) {
+      const price = parseFloat(search);
+      query.price = price;
+    }else{
+      const searchRegex = new RegExp(search, "i");
       query.$or = [{ title: searchRegex }, { description: searchRegex }];
-
-      if (!isNaN(search)) {
-        const price = parseFloat(search);
-        query.$or.push({ price: price });
-      }
     }
     const transactions = await Product.find(query).skip(skip).limit(limit);
     if (month) {
